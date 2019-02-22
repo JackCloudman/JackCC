@@ -21,6 +21,8 @@ Complejo *Complejo_div(Complejo *c1, Complejo *c2){
                         (c1->img*c2->real - c1->real*c2->img) / d);
 }
 void imprimirC(Complejo *c){
+  if(c==0)
+    return;
    if(c->img != 0)
       printf("%f%+fi\n", c->real, c->img);
    else

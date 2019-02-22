@@ -3,31 +3,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "complejo_cal.h"
+#include  "Symbol.h"
 #include "y.tab.h"
+
 extern Complejo *creaComplejo(int real, int img);
 void RmWs(char* str);
 extern YYSTYPE yylval;
 %}
-/* Add your Flex definitions here              */
-/* Some definitions are already provided to you*/
-op [-+*\/()]
+
+op [-+*\/()=]
 ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*
 im [i]
 complexnum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
+VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
 %%
+
 {complexnum} {
- double r, im;
- RmWs(yytext);
- sscanf(yytext,"%lf %lf",&r,&im);
- yylval=creaComplejo(r,im);
- return complexnum;}
+  double r, im;
+  RmWs(yytext);
+  sscanf(yytext,"%lf %lf",&r,&im);
+  yylval.val=creaComplejo(r,im);
+  return complexnum;}
+{VAR} {
+  Symbol *s;
+  if((s=lookup(yytext))==0)
+    s = install(yytext,INDEF,0);
+  yylval.sym = s;
+  return s->type==INDEF?VAR:s->type;
+}
 {op} |
 \n {return *yytext;}
 {ws} { /* Do nothing */ }
 . { /* Do nothing */ }
 %%
+
 /* function provided to student to remove */
 /* all the whitespaces from a string.     */
 /* input :       a string of chars        */
