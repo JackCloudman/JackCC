@@ -16,15 +16,23 @@ ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*
 im [i]
-complexnum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
+simplenum {ws}*[-]?{ws}*{number}
+completenum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
+complexnum simplenum|completenum
 VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
 %%
 
-{complexnum} {
+{completenum} {
   double r, im;
   RmWs(yytext);
   sscanf(yytext,"%lf %lf",&r,&im);
   yylval.val=creaComplejo(r,im);
+  return complexnum;}
+{simplenum} {
+  double r;
+  RmWs(yytext);
+  sscanf(yytext,"%lf",&r);
+  yylval.val=creaComplejo(r,0);
   return complexnum;}
 {VAR} {
   Symbol *s;

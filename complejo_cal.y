@@ -35,6 +35,7 @@ exp:  complexnum        { $$ = $1;  }
                   printf("Error: '%s' no esta definido\n",$1->name);
                   $$ = $1->u.val;
                 }
+      | asgn
       | exp '+' exp     { $$ = Complejo_add($1,$3);  }
       | exp '-' exp     { $$ = Complejo_sub($1,$3);  }
       | exp '*' exp     { $$ = Complejo_mul($1,$3);  }
