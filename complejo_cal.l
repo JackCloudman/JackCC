@@ -6,7 +6,7 @@
 #include  "Symbol.h"
 #include "y.tab.h"
 
-extern Complejo *creaComplejo(int real, int img);
+extern Complejo *creaComplejo(double real, double img);
 void RmWs(char* str);
 extern YYSTYPE yylval;
 %}

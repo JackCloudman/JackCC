@@ -1,7 +1,7 @@
 Gram=y.tab.c y.tab.h
 
 all: $(Gram) lex.yy.c complejo_cal.c
-	@gcc -o calc y.tab.c lex.yy.c complejo_cal.c Symbol.c
+	@gcc -o calc y.tab.c lex.yy.c complejo_cal.c Symbol.c init.c -lm
 	@echo Compiled
 
 complejo_cal.c:

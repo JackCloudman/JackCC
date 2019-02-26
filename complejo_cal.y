@@ -6,7 +6,7 @@
 void yyerror (char *s);
 int yylex ();
 void warning(char *s, char *t);
-
+extern void init();
 %}
 %union {
   ComplejoAP val;
@@ -41,6 +41,7 @@ exp:  complexnum        { $$ = $1;  }
       | exp '*' exp     { $$ = Complejo_mul($1,$3);  }
       | exp '/' exp     { $$ = Complejo_div($1,$3);  }
       | '(' exp ')'     { $$ = $2;}
+      |BLTIN  '(' exp ')' { $$=(*($1->u.ptr))($3);}
 ;
 %%
 
@@ -50,7 +51,8 @@ char *progname;
 
 void main (int argc, char *argv[]){
   progname=argv[0];
-    yyparse ();
+  init();
+  yyparse ();
 }
 void yyerror (char *s) {
   warning(s, (char *) 0);
