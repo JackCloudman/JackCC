@@ -20,19 +20,20 @@ simplenum {ws}*[-]?{ws}*{number}
 completenum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
 complexnum simplenum|completenum
 VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
+EXIT exit[\(][\)]
 %%
 
 {completenum} {
   double r, im;
   RmWs(yytext);
   sscanf(yytext,"%lf %lf",&r,&im);
-  yylval.val=creaComplejo(r,im);
+  yylval.sym = install("",complexnum,creaComplejo(r,im));
   return complexnum;}
 {simplenum} {
   double r;
   RmWs(yytext);
   sscanf(yytext,"%lf",&r);
-  yylval.val=creaComplejo(r,0);
+  yylval.sym = install("",complexnum,creaComplejo(r,0));
   return complexnum;}
 {VAR} {
   Symbol *s;
@@ -45,6 +46,7 @@ VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
 \n {return *yytext;}
 {ws} { /* Do nothing */ }
 . { /* Do nothing */ }
+{EXIT} {return EXIT;}
 %%
 
 /* function provided to student to remove */

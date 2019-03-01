@@ -17,4 +17,18 @@ typedef struct Symbol {
 } Symbol;
 
 Symbol *install(char *s,int t, ComplejoAP d), *lookup(char *s);
+
+typedef union Datum {   /* tipo de la pila del intérprete */
+  ComplejoAP  val;
+  Symbol  *sym; } Datum;
+
+extern Datum pop();
+
+typedef void (*Inst)();  /* instrucción de máquina */
+
+#define STOP    (Inst) 0
+extern  Inst prog[];
+extern  void eval(), addc(), subc(), mulc(), divc();
+extern void  assign(), bltin(), varpush(), constpush(), print();
+
 #endif
