@@ -28,7 +28,7 @@ typedef void (*Inst)();  /* instrucción de máquina */
 
 #define STOP    (Inst) 0
 extern  Inst prog[];
-extern  void eval(), addc(), subc(), mulc(), divc();
+extern  void eval(), addc(), subc(), mulc(), divc(),negate();
 extern void  assign(), bltin(), varpush(), constpush(), print();
 
 #endif

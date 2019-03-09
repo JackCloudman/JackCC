@@ -12,6 +12,8 @@ void warning(char *s, char *t);
 void execerror(char *s, char *t);
 
 extern void init();
+extern void execute();
+extern void initcode();
 %}
 %union {
   Symbol *sym;
@@ -23,12 +25,13 @@ extern void init();
 %right '='
 %left '+' '-'
 %left '*' '/'
+%left UNARYMINUS
 %%
 list:
   | list'\n'
-  | list asgn '\n' {code2(pop,STOP);printf(">>> "); return 1;}
+  | list asgn '\n' {code2((Inst)pop,STOP);return 1;}
   | list exp '\n'  { code2(print,STOP);return 1;}
-  | list error '\n' {yyerrok;printf(">>> ");}
+  | list error '\n' {initcode();printf(">>> ");yyerrok;}
   ;
 asgn: VAR '=' exp {code3(varpush,(Inst)$1,assign);}
 ;
@@ -41,6 +44,7 @@ exp:  complexnum  { code2(constpush,(Inst)$1);}
       | exp '/' exp     { code(divc);}
       | '(' exp ')' {}
       |BLTIN  '(' exp ')' {code2(bltin,(Inst)$1->u.ptr);}
+      |'-' exp %prec UNARYMINUS {code(negate);}
       | EXIT {exit(0);}
 ;
 %%
@@ -55,6 +59,7 @@ void main (int argc, char *argv[]){
   printf("Jack Complex Calculator v1.4\n[GCC 8.2.1 20181127]\n>>> ");
   for(initcode(); yyparse (); initcode()){
     execute(prog);
+    printf(">>> ");
   }
 }
 void yyerror (char *s) {

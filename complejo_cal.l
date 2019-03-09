@@ -38,10 +38,11 @@ EXIT exit[\(][\)]
 {VAR} {
   Symbol *s;
   if((s=lookup(yytext))==0)
-    s = install(yytext,INDEF,0);
+    s = install(yytext,INDEF,creaComplejo(0,0));
   yylval.sym = s;
   return s->type==INDEF?VAR:s->type;
 }
+^\n$ {return *yytext;}
 {op} |
 \n {return *yytext;}
 {ws} { /* Do nothing */ }

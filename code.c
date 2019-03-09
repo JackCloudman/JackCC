@@ -9,7 +9,7 @@ static  Datum   *stackp;       /* siguiente lugar libre en la pila */
 Inst    prog[NPROG];    /* la máquina */
 Inst    *progp;         /* siguiente lugar libre para la generación de código */
 Inst    *pc;	/* contador de programa durante la ejecución */
-
+int error = 0;
 
 void initcode(){ /* inicialización para la generación de código */
 stackp = stack;
@@ -46,9 +46,11 @@ void varpush(){/* meter una variable a la pila   */
 void eval( ){ /*  evaluar una variable en la pila   */
   Datum  d;
   d   =  pop();
-  if   (d.sym->type   ==   INDEF)
+  if   (d.sym->type   ==   INDEF){
     execerror("Error, variable no definida: ",
-  d.sym->name);
+              d.sym->name);
+    error = 1;
+  }
   d.val   =  d.sym->u.val; push(d);
 }
 
@@ -80,48 +82,44 @@ void mulc(){
 void divc( ){
   Datum d1, d2;
   d2 = pop();
-  if (d2.val->img == 0.0 && d2.val->real == 0.0)
+  if (d2.val->img == 0.0 && d2.val->real == 0.0){
     execerror("division by zero", (char *)0);
+    error = 1;
+  }
   d1 = pop();
   d1.val = Complejo_div(d1.val,d2.val);
   push(d1);
 }
 
-/*negate()
+void negate()
 {
 Datum d;
 d = pop();
-d.val  =  -d.val;
+d.val->img = -d.val->img;
+d.val->real  = -d.val->real;
 push(d);
 }
-
-power()
-{
-Datum d1, d2;
-extern double Pow();
-d2 = pop();
-d1 = pop();
-d1.val = Pow(d1.val, d2.val);
-push(d1);
-}*/
-
 
 void assign( ){
   Datum d1, d2;
   d1 = pop();
   d2 = pop();
-  if (d1.sym->type != VAR && d1.sym->type != INDEF)
+  if (d1.sym->type != VAR && d1.sym->type != INDEF){
     execerror("assignment to non-variable", d1.sym->name);
+    error = 1;
+  }
   d1.sym->u.val = d2.val;
-  d1.sym->type = VAR;
+  if(!error)
+    d1.sym->type = VAR;
   push(d2);
 }
 
 void print( ){
   Datum d;
   d = pop();
-  imprimirC(d.val);
-  printf(">>> ");
+  if(!error)
+    imprimirC(d.val);
+  error = 0;
 }
 
 void bltin( )/*  evaluar un predefinido en el tope de la pila  */
