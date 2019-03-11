@@ -15,6 +15,8 @@ extern void init();
 extern void execute();
 extern void initcode();
 extern Inst *progp;
+extern FILE *yyin;
+int readfile = 0;
 %}
 %union {
   Symbol *sym;
@@ -67,7 +69,7 @@ if: IF {$$=code(ifcode);code3(STOP,STOP,STOP);}
 end:  {code(STOP);$$=progp;}
   ;
 stmtlist: {$$=progp;}
-      | stmtlist '\n' {printf("... ");}
+      | stmtlist '\n' {if(!readfile)printf("... ");}
       | stmtlist stmt
   ;
 exp:  complexnum  { code2(constpush,(Inst)$1);}
@@ -100,10 +102,19 @@ char *progname;
 void main (int argc, char *argv[]){
   progname=argv[0];
   init();
-  printf("Jack Complex Calculator v1.5\n[GCC 8.2.1 20181127]\n>>> ");
-  for(initcode(); yyparse (); initcode()){
-    execute(prog);
-    printf(">>> ");
+  if(argc==1){
+    printf("Jack Complex Calculator v1.5.1\n[GCC 8.2.1 20181127]\n>>> ");
+    for(initcode(); yyparse (); initcode()){
+      execute(prog);
+      printf(">>> ");
+    }
+  }
+  if(argc==2){
+    readfile = 1;
+    yyin = fopen(argv[1],"r");
+    for(initcode();yyparse();initcode()){
+      execute(prog);
+    }
   }
 }
 void yyerror (char *s) {
