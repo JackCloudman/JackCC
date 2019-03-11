@@ -2,46 +2,50 @@
 #include <stdio.h>
 #include "complejo_cal.h"
 #include "Symbol.h"
+extern void *code(Inst);
+#define code2(c1,c2) code(c1); code(c2);
+#define code3(c1,c2,c3) code(c1); code(c2); code(c3);
 
 void yyerror (char *s);
 int yylex ();
 void warning(char *s, char *t);
+void execerror(char *s, char *t);
+
 extern void init();
+extern void execute();
+extern void initcode();
 %}
 %union {
-  ComplejoAP val;
   Symbol *sym;
+  Inst *inst;
 }
 
-%token <val> complexnum
-%token <sym> VAR BLTIN INDEF
-%type <val> exp asgn
+%token <sym> complexnum VAR BLTIN INDEF EXIT
 
 %right '='
 %left '+' '-'
 %left '*' '/'
+%left UNARYMINUS
 %%
 list:
   | list'\n'
-  | list exp '\n'  { imprimirC($2);}
-  | list asgn '\n'
-  | list error '\n' {yyerrok;}
+  | list asgn '\n' {code2((Inst)pop,STOP);return 1;}
+  | list exp '\n'  { code2(print,STOP);return 1;}
+  | list error '\n' {initcode();printf(">>> ");yyerrok;}
   ;
-asgn: VAR '=' exp {$$=$1->u.val=$3; $1->type=VAR;}
+asgn: VAR '=' exp {code3(varpush,(Inst)$1,assign);}
 ;
-exp:  complexnum        { $$ = $1;  }
-      | VAR     {
-                  if($1->type == INDEF)
-                  printf("Error: '%s' no esta definido\n",$1->name);
-                  $$ = $1->u.val;
-                }
+exp:  complexnum  { code2(constpush,(Inst)$1);}
+      | VAR       {code3(varpush,(Inst)$1,eval);}
       | asgn
-      | exp '+' exp     { $$ = Complejo_add($1,$3);  }
-      | exp '-' exp     { $$ = Complejo_sub($1,$3);  }
-      | exp '*' exp     { $$ = Complejo_mul($1,$3);  }
-      | exp '/' exp     { $$ = Complejo_div($1,$3);  }
-      | '(' exp ')'     { $$ = $2;}
-      |BLTIN  '(' exp ')' { $$=(*($1->u.ptr))($3);}
+      | exp '+' exp     { code(addc);  }
+      | exp '-' exp     { code(subc);}
+      | exp '*' exp     { code(mulc);}
+      | exp '/' exp     { code(divc);}
+      | '(' exp ')' {}
+      |BLTIN  '(' exp ')' {code2(bltin,(Inst)$1->u.ptr);}
+      |'-' exp %prec UNARYMINUS {code(negate);}
+      | EXIT {exit(0);}
 ;
 %%
 
@@ -52,13 +56,22 @@ char *progname;
 void main (int argc, char *argv[]){
   progname=argv[0];
   init();
-  yyparse ();
+  printf("Jack Complex Calculator v1.4\n[GCC 8.2.1 20181127]\n>>> ");
+  for(initcode(); yyparse (); initcode()){
+    execute(prog);
+    printf(">>> ");
+  }
 }
 void yyerror (char *s) {
   warning(s, (char *) 0);
 }
 void warning(char *s, char *t){
-  fprintf (stderr, "%s: %s", progname, s);
+  fprintf (stderr, "%s",s);
   if(t)
-    fprintf (stderr, " %s", t);
+    fprintf (stderr, "%s", t);
+  fprintf(stderr,"\n");
+}
+void execerror(char *s, char *t)
+{
+	warning(s, t);
 }
