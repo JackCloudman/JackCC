@@ -2,6 +2,7 @@
 #include "y.tab.h"
 
 extern void execerror(char *s, char *t);
+void execute(Inst* p);
 #define NSTACK  256
 static  Datum  stack[NSTACK];  /* la pila */
 static  Datum   *stackp;       /* siguiente lugar libre en la pila */
@@ -41,6 +42,29 @@ void varpush(){/* meter una variable a la pila   */
   Datum d;
   d.sym  =  (Symbol   *)(*pc++);
   push(d);
+}
+void whilecode(){
+  Datum d;
+  Inst *savepc = pc;
+  execute(savepc+2);
+  d = pop();
+  while(d.val->img!=0 || d.val->real!=0){
+    execute(*((Inst  **)(savepc)));
+    execute(savepc+2);
+    d = pop();
+  }
+  pc = *((Inst  **)(savepc+1));
+}
+void ifcode(){
+  Datum d;
+  Inst  *savepc  = pc;	/* parte then */
+  execute(savepc+3);	/*  condición   */
+  d  =  pop();
+  if(d.val->img||d.val->real)
+    execute(*((Inst   **)(savepc)));
+  else if(*((Inst  **)(savepc+1)))   /*  ¿parte else?   */
+    execute(*(( Inst  **) (savepc+1)));
+  pc  =  *((Inst  **)(savepc+2));	/*  siguiente proposición   */
 }
 
 void eval( ){ /*  evaluar una variable en la pila   */
@@ -99,7 +123,86 @@ d.val->img = -d.val->img;
 d.val->real  = -d.val->real;
 push(d);
 }
+/* OPERACIONES DE COMPARACION */
+void gt() {
+  Datum d1,  d2;
+  d2 = pop();
+  d1 = pop();
+  d1.val  = creaComplejo(Complejo_abs(d1.val)->real > Complejo_abs(d2.val)->real,0);
+  push(d1);
+}
 
+void lt(){
+  Datum d1,  d2;
+  d2 = pop();
+  d1 = pop();
+  d1.val  =  creaComplejo(Complejo_abs(d1.val)->real < Complejo_abs(d2.val)->real,0);
+  push(d1);
+}
+
+void ge( ) {
+  Datum d1,  d2;
+  d2  = pop();
+  d1  = pop();
+  if(!(Complejo_abs(d1.val)->real > Complejo_abs(d2.val)->real)){ //Si es mayor crea el complejo
+    d1.val = creaComplejo(d2.val->real==d1.val->real && d1.val->img==d2.val->img,0);//Si no es mayor, quiza es igual
+  }else{
+    d1.val = creaComplejo(1,0);
+  }
+  push(d1) ;
+}
+
+void le() {
+  Datum d1,  d2;
+  d2   =  pop();
+  d1   =  pop();
+  if(!(Complejo_abs(d1.val)->real < Complejo_abs(d2.val)->real)){
+    d1.val = creaComplejo(d2.val->real==d1.val->real && d1.val->img==d2.val->img,0);
+  }else{
+    d1.val = creaComplejo(1,0);
+  }
+  push(d1);
+}
+
+void eq( ) {
+  Datum d1,  d2;
+  d2  = pop();
+  d1  = pop();
+  d1.val = creaComplejo(d2.val->real==d1.val->real && d1.val->img==d2.val->img,0);
+  push(d1);
+}
+
+void ne(){
+  Datum d1, d2;
+  d2 = pop();
+  d1 = pop();
+  d1.val = creaComplejo(d2.val->real!=d1.val->real || d1.val->img!=d2.val->img,0);
+  push(d1);
+}
+
+void and(){
+  Datum d1,   d2;
+  d2   = pop();
+  d1   = pop();
+  d1.val = creaComplejo((Complejo_abs(d1.val)->real!=0) && (Complejo_abs(d2.val)->real!=0),0);
+  push(d1);
+}
+
+void or(){
+  Datum d1, d2;
+  d2 = pop();
+  d1 = pop();
+  d1.val = creaComplejo(Complejo_abs(d1.val)->real!=0 || Complejo_abs(d2.val)->real!=0,0);
+  push(d1);
+}
+
+void not( ){
+  Datum d;
+  d = pop();
+  d.val = creaComplejo(Complejo_abs(d.val)->real==0,0);
+  push(d);
+}
+/* ===== */
 void assign( ){
   Datum d1, d2;
   d1 = pop();

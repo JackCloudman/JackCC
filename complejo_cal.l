@@ -16,13 +16,26 @@ ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*
 im [i]
-simplenum {ws}*[-]?{ws}*{number}
+simplenum {ws}*{ws}*{number}
 completenum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
 complexnum simplenum|completenum
 VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
+
 EXIT exit[\(][\)]
 %%
-
+> {return GT;}
+>= {return GE;}
+\< {return LT;}
+\<= {return LE;}
+== {return EQ;}
+!= {return NE;}
+not {return NOT;}
+or {return OR;}
+and {return AND;}
+if {return IF;}
+while {return WHILE;}
+else {return ELSE;}
+print {return PRINT;}
 {completenum} {
   double r, im;
   RmWs(yytext);
@@ -46,7 +59,8 @@ EXIT exit[\(][\)]
 {op} |
 \n {return *yytext;}
 {ws} { /* Do nothing */ }
-. { /* Do nothing */ }
+[\{|\}] {return *yytext;}
+. { printf("%c",*yytext); }
 {EXIT} {return EXIT;}
 %%
 
