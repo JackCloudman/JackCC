@@ -21,11 +21,11 @@ int readfile = 0;
 %union {
   Symbol *sym;
   Inst *inst;
+  String s;
 }
 
-%token <sym> complexnum VAR BLTIN INDEF EXIT WHILE IF ELSE PRINT
-%type <inst> stmt asgn exp stmtlist cond while if end
-
+%token <sym> complexnum VAR VARS BLTIN INDEF EXIT WHILE IF ELSE PRINT STRING
+%type <inst> stmt asgn exp stmtlist cond while if end string asgnS
 %right '='
 %left OR
 %left AND
@@ -37,14 +37,27 @@ int readfile = 0;
 list:
   | list'\n'
   | list asgn '\n' {code2((Inst)pop,STOP);return 1;}
+  | list asgnS '\n' {code2((Inst)pop,STOP);return 1;}
   | list stmt '\n' {code(STOP);return 1;}
   | list exp '\n'  { code2(print,STOP);return 1;}
+  | list string'\n' {code2(printS,STOP);return 1;}
   | list error '\n' {initcode();printf(">>> ");yyerrok;}
   ;
 asgn: VAR '=' exp {code3(varpush,(Inst)$1,assign);}
   ;
+asgnS: VAR '=' string {code3(varpush,(Inst)$1,assignS);}
+  | VARS '=' string {code3(varpush,(Inst)$1,assignS);}
+  | VARS '=' exp {code3(varpush,(Inst)$1,assign);}
+;
+string: STRING {code2(constStringpush,(Inst)$1);}
+  | string '+' string {code(addS);}
+  | string '+' exp {code2(convertS,addS);}
+  | exp '+' string {code2(flip,convertS);code2(flip,addS);}
+  | VARS {code3(varpush,(Inst)$1,evalS);}
+  ;
 stmt: exp {code((Inst)pop);}
     | PRINT exp { code(print); $$ = $2;}
+    | PRINT string {code(printS);$$=$2;}
     | while cond stmt end {
         ($1)[1] = (Inst)$3;
         ($1)[2] = (Inst)$4;
@@ -103,7 +116,7 @@ void main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.5.1\n[GCC 8.2.1 20181127]\n>>> ");
+    printf("Jack Complex Calculator v1.5.2\n[GCC 8.2.1 20181127]\n>>> ");
     for(initcode(); yyparse (); initcode()){
       execute(prog);
       printf(">>> ");

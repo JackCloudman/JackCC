@@ -37,6 +37,11 @@ void constpush( ){ /* meter una complexnum a la pila  */
   d.val  =  ((Symbol  *)*pc++)->u.val;
   push(d);
 }
+void constStringpush( ){ /* meter una complexnum a la pila  */
+  Datum d;
+  d.s  =  ((Symbol  *)*pc++)->u.s;
+  push(d);
+}
 
 void varpush(){/* meter una variable a la pila   */
   Datum d;
@@ -76,6 +81,16 @@ void eval( ){ /*  evaluar una variable en la pila   */
     error = 1;
   }
   d.val   =  d.sym->u.val; push(d);
+}
+void evalS( ){ /*  evaluar una variable en la pila   */
+  Datum  d;
+  d   =  pop();
+  if   (d.sym->type   ==   INDEF){
+    execerror("Error, variable no definida: ",
+              d.sym->name);
+    error = 1;
+  }
+  d.s = d.sym->u.s; push(d);
 }
 
 void addc( ){
@@ -207,13 +222,26 @@ void assign( ){
   Datum d1, d2;
   d1 = pop();
   d2 = pop();
-  if (d1.sym->type != VAR && d1.sym->type != INDEF){
-    execerror("assignment to non-variable", d1.sym->name);
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type != INDEF){
+    execerror("assignment to non-variableeeee", d1.sym->name);
     error = 1;
   }
   d1.sym->u.val = d2.val;
   if(!error)
     d1.sym->type = VAR;
+  push(d2);
+}
+void assignS( ){
+  Datum d1, d2;
+  d1 = pop();
+  d2 = pop();
+  if (d1.sym->type != VARS && d1.sym->type != VAR && d1.sym->type != INDEF){
+    execerror("assignment to non-variablexD", d1.sym->name);
+    error = 1;
+  }
+  d1.sym->u.s = d2.s;
+  if(!error)
+    d1.sym->type = VARS;
   push(d2);
 }
 
@@ -232,8 +260,37 @@ void bltin( )/*  evaluar un predefinido en el tope de la pila  */
   d.val  =   (*(ComplejoAP   (*)())(*pc++))(d.val);
   push(d);
 }
+void printS( ){
+  Datum d;
+  d = pop();
+  if(!error)
+    printf("'%s'\n",d.s);
+  error = 0;
+}
+void flip(){
+  Datum d1,d2;
+  d2 = pop();
+  d1 = pop();
+  push(d2);
+  push(d1);
+}
+void addS( ){
+  Datum d1, d2;
+  String d = 0;
+  d2 = pop();
+  d1 = pop();
 
-
+  d = (String)malloc(sizeof(char)*(strlen(d1.s)+strlen(d2.s)+1));
+  strcpy(d,d1.s);
+  strcat(d,d2.s);
+  d1.s = d;
+  push(d1);
+}
+void convertS(){
+  Datum d = pop();
+  d.s = Complejo_to_String(d.val);
+  push(d);
+}
 Inst   *code(Inst f) /*   instalar una instrucción u operando   */
 {
 Inst *oprogp = progp;

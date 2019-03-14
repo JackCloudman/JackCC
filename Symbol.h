@@ -4,11 +4,13 @@
 #include <string.h>
 /*entrada a tabla de simbolos,
 es una lista simplemente ligada*/
+typedef char* String;
 typedef struct Symbol {
   char   *name;
   short   type;   /* VAR, BLTIN, UNDEF */
 
   union {
+    String s;
     ComplejoAP val;	       /* si es VAR */
     ComplejoAP (*ptr)();      /* sí es BLTIN */
   } u;
@@ -16,10 +18,13 @@ typedef struct Symbol {
   struct Symbol   *next;  /* para ligarse a otro */
 } Symbol;
 
-Symbol *install(char *s,int t, ComplejoAP d), *lookup(char *s);
+Symbol *installComplejo(char *s,int t, ComplejoAP d), *lookup(char *s);
+Symbol *installString(char *s,int t, char* d);
+char* makeString(char* cadena);
 
 typedef union Datum {   /* tipo de la pila del intérprete */
   ComplejoAP  val;
+  String s;
   Symbol  *sym; } Datum;
 
 extern Datum pop();
@@ -31,5 +36,6 @@ extern  Inst prog[];
 extern  void eval(), addc(), subc(), mulc(), divc(),negate(),whilecode(),ifcode();
 extern void gt(),ge(),lt(),le(),eq(),ne(),and(),or(),not();
 extern void  assign(), bltin(), varpush(), constpush(), print();
+extern void convertS(),evalS(),addS(),printS(),assignS(),constStringpush(),flip();
 
 #endif

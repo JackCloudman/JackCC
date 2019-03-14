@@ -27,10 +27,10 @@ void init( ){
   Complejo* d;
   for (i = 0; consts[i].name; i++){
     d = creaComplejo(consts[i].cval,0);
-    install(consts[i].name, VAR,d);
+    installComplejo(consts[i].name, VAR,d);
   }
   for (i = 0; builtins[i].name; i++) {
-  	s = install(builtins[i].name, BLTIN, 0);
+  	s = installComplejo(builtins[i].name, BLTIN, 0);
   	s->u.ptr = builtins[i].func;
   }
 }
