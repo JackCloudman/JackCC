@@ -65,7 +65,7 @@ print {return PRINT;}
 \n {return *yytext;}
 {ws} { /* Do nothing */ }
 [\{|\}] {return *yytext;}
-. { printf("%c",*yytext); }
+. { }
 {EXIT} {return EXIT;}
 %%
 
