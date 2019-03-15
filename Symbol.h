@@ -1,6 +1,7 @@
 #ifndef __SYMBOL_H__
 #define __SYMBOL_H__
 #include "complejo_cal.h"
+#include "List.h"
 #include <string.h>
 /*entrada a tabla de simbolos,
 es una lista simplemente ligada*/
@@ -13,6 +14,7 @@ typedef struct Symbol {
     String s;
     ComplejoAP val;	       /* si es VAR */
     ComplejoAP (*ptr)();      /* sí es BLTIN */
+    List *l;
   } u;
 
   struct Symbol   *next;  /* para ligarse a otro */
@@ -23,6 +25,7 @@ Symbol *installString(char *s,int t, char* d);
 char* makeString(char* cadena);
 
 typedef union Datum {   /* tipo de la pila del intérprete */
+  List* l;
   ComplejoAP  val;
   String s;
   Symbol  *sym; } Datum;
@@ -37,5 +40,6 @@ extern  void eval(), addc(), subc(), mulc(), divc(),negate(),whilecode(),ifcode(
 extern void gt(),ge(),lt(),le(),eq(),ne(),and(),or(),not();
 extern void  assign(), bltin(), varpush(), constpush(), print();
 extern void convertS(),evalS(),addS(),printS(),assignS(),constStringpush(),flip();
+extern void makeArray(),printArray(),MergeArray(),assignA(),evalA();
 
 #endif

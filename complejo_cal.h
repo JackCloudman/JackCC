@@ -20,5 +20,5 @@
   ComplejoAP Complejo_cos(Complejo *);
   ComplejoAP Complejo_abs(Complejo*);
   char * Complejo_to_String(ComplejoAP);
-  void imprimirC(Complejo *c);
+  void imprimirC(Complejo *c,char*);
 #endif

@@ -24,14 +24,15 @@ int readfile = 0;
   String s;
 }
 
-%token <sym> complexnum VAR VARS BLTIN INDEF EXIT WHILE IF ELSE PRINT STRING
-%type <inst> stmt asgn exp stmtlist cond while if end string asgnS
+%token <sym> complexnum VAR VARS VARA BLTIN INDEF EXIT WHILE IF ELSE PRINT STRING
+%type <inst> stmt asgn exp stmtlist cond while if end string asgnS array arraylist initarray asgnA
 %right '='
 %left OR
 %left AND
 %left GT GE LT LE EQ NE
 %left '+' '-'
 %left '*' '/'
+%left ','
 %left UNARYMINUS NOT
 %%
 list:
@@ -42,12 +43,30 @@ list:
   | list exp '\n'  { code2(print,STOP);return 1;}
   | list string'\n' {code2(printS,STOP);return 1;}
   | list error '\n' {initcode();printf(">>> ");yyerrok;}
+  | list array '\n' {code2(printArray,STOP);return 1;}
+  | list asgnA '\n' {code2((Inst)pop,STOP);return 1;}
+  ;
+initarray: {code(makeArray);}
+array: initarray '['arraylist']' {code(STOP);}
+  | VARA {code3(varpush,(Inst)$1,evalA);}
+  | array'+'array {code(MergeArray);}
+  | asgnA
+  ;
+arraylist: arraylist','arraylist {}
+  | exp {}
+  | {$$=progp;}
+  ;
+asgnA: VAR '=' array {code3(varpush,(Inst)$1,assignA);}
+  |    VARS '=' array {code3(varpush,(Inst)$1,assignA);}
+  |    VARA '=' array {code3(varpush,(Inst)$1,assignA);}
   ;
 asgn: VAR '=' exp {code3(varpush,(Inst)$1,assign);}
+  |   VARS '=' exp {code3(varpush,(Inst)$1,assign);}
+  |   VARA '=' exp {code3(varpush,(Inst)$1,assign);}
   ;
 asgnS: VAR '=' string {code3(varpush,(Inst)$1,assignS);}
-  | VARS '=' string {code3(varpush,(Inst)$1,assignS);}
-  | VARS '=' exp {code3(varpush,(Inst)$1,assign);}
+  |    VARS '=' string {code3(varpush,(Inst)$1,assignS);}
+  |    VARA '=' string {code3(varpush,(Inst)$1,assignS);}
 ;
 string: STRING {code2(constStringpush,(Inst)$1);}
   | string '+' string {code(addS);}
@@ -56,8 +75,11 @@ string: STRING {code2(constStringpush,(Inst)$1);}
   | VARS {code3(varpush,(Inst)$1,evalS);}
   ;
 stmt: exp {code((Inst)pop);}
+    | string {code((Inst)pop);}
+    | array {code((Inst)pop);}
     | PRINT exp { code(print); $$ = $2;}
     | PRINT string {code(printS);$$=$2;}
+    | PRINT array {code(printArray);$$=$2;}
     | while cond stmt end {
         ($1)[1] = (Inst)$3;
         ($1)[2] = (Inst)$4;
@@ -116,7 +138,7 @@ void main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.5.2\n[GCC 8.2.1 20181127]\n>>> ");
+    printf("Jack Complex Calculator v1.5.3\n[GCC 8.2.1 20181127]\n>>> ");
     for(initcode(); yyparse (); initcode()){
       execute(prog);
       printf(">>> ");

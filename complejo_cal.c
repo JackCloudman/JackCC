@@ -48,11 +48,13 @@ char* Complejo_to_String(ComplejoAP c){
   return s;
 
 }
-void imprimirC(ComplejoAP c){
+void imprimirC(ComplejoAP c,char* end){
+  if(end == 0)
+    *end = '\n';
   if(c==0)
     return;
    if(c->img != 0)
-      printf("%f%+fi\n", c->real, c->img);
+      printf("%f%+fi%c", c->real, c->img,*end);
    else
-      printf("%f\n", c->real);
+      printf("%f%c", c->real,*end);
 }

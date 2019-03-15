@@ -92,7 +92,16 @@ void evalS( ){ /*  evaluar una variable en la pila   */
   }
   d.s = d.sym->u.s; push(d);
 }
-
+void evalA( ){ /*  evaluar una variable en la pila   */
+  Datum  d;
+  d   =  pop();
+  if   (d.sym->type   ==   INDEF){
+    execerror("Error, variable no definida: ",
+              d.sym->name);
+    error = 1;
+  }
+  d.l = d.sym->u.l; push(d);
+}
 void addc( ){
   Datum d1,   d2;
   d2 = pop();
@@ -222,8 +231,8 @@ void assign( ){
   Datum d1, d2;
   d1 = pop();
   d2 = pop();
-  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type != INDEF){
-    execerror("assignment to non-variableeeee", d1.sym->name);
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
+    execerror("assignment to non-variable", d1.sym->name);
     error = 1;
   }
   d1.sym->u.val = d2.val;
@@ -235,8 +244,8 @@ void assignS( ){
   Datum d1, d2;
   d1 = pop();
   d2 = pop();
-  if (d1.sym->type != VARS && d1.sym->type != VAR && d1.sym->type != INDEF){
-    execerror("assignment to non-variablexD", d1.sym->name);
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
+    execerror("assignment to non-variable", d1.sym->name);
     error = 1;
   }
   d1.sym->u.s = d2.s;
@@ -244,12 +253,25 @@ void assignS( ){
     d1.sym->type = VARS;
   push(d2);
 }
-
+void assignA(){
+  Datum d1, d2;
+  d1 = pop();
+  d2 = pop();
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
+    execerror("assignment to non-variable", d1.sym->name);
+    error = 1;
+  }
+  d1.sym->u.l = d2.l;
+  if(!error)
+    d1.sym->type = VARA;
+  push(d2);
+}
 void print( ){
   Datum d;
+  char c = '\n';
   d = pop();
   if(!error)
-    imprimirC(d.val);
+    imprimirC(d.val,&c);
   error = 0;
 }
 
@@ -290,6 +312,31 @@ void convertS(){
   Datum d = pop();
   d.s = Complejo_to_String(d.val);
   push(d);
+}
+void makeArray(){
+  Datum d;
+  List* l = 0;
+  Datum* savestackp = stackp;
+  execute(pc);
+  while(stackp > savestackp){
+    d = pop();
+    l = Listinsert(l,d.val);
+  }
+  d.l = l;
+  push(d);
+  *pc++;
+}
+void MergeArray(){
+  Datum d2,d1;
+  d2 = pop();
+  d1 = pop();
+  d1.l = Listmerge(d1.l,d2.l);
+  push(d1);
+}
+void printArray(){
+  Datum d;
+  d = pop();
+  printList(d.l);
 }
 Inst   *code(Inst f) /*   instalar una instrucción u operando   */
 {
