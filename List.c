@@ -13,6 +13,31 @@ List* Listinsert(List* l,ComplejoAP d){
   }
   return n;
 }
+ComplejoAP* getElement(List *l,int pos){
+  List* aux = 0;
+  if(l==0)
+    return 0;
+  int i;
+  if(pos>=0){ // Recorrido a la derecha
+    aux = l;
+    for(i=0;(aux->next!=l)&&(i<pos);i++){
+      aux = aux->next;
+    }
+    if(pos>i)
+      return 0;
+  }
+  else{ //Recorrido a la izquierda
+    aux = l->prev;
+    for(i=-1;(aux->prev!=l)&&(i>pos);i--){
+      aux = aux->prev;
+    }
+    if(pos<i-1)
+      return 0;
+    else if(pos!=i)
+      return &(l->u.val);
+  }
+  return &(aux->u.val);
+}
 List* Listappend(List *l,ComplejoAP d){
   List* n = (List*)malloc(sizeof(List));
   n->u.val = d;

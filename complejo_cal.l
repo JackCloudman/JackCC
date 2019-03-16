@@ -11,7 +11,7 @@ void RmWs(char* str);
 extern YYSTYPE yylval;
 %}
 
-op [-+*\/()=]
+op [-+*\/()=:]
 ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*

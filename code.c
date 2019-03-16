@@ -338,6 +338,37 @@ void printArray(){
   d = pop();
   printList(d.l);
 }
+void aArray(){
+  Datum d1,d2;
+  ComplejoAP* c = 0;
+  d2 = pop();
+  if(d2.val->img!=0)
+    execerror("Only int number!", (char *) 0);
+  d1 = pop();
+  c = getElement(d1.l,d2.val->real);
+  if(c==0){
+    execerror("IndexError: list index out of range", (char *) 0);
+    return;
+  }
+  d1.val = *c;
+  push(d1);
+}
+void ChangeValue(){
+  Datum nd,index,a;//New dato,index, array
+  ComplejoAP* c = 0;
+  nd = pop();
+  index = pop();
+  a = pop(); //Save array
+  if(index.val->img!=0)
+    execerror("Only int number!", (char *) 0);
+  c = getElement(a.l,index.val->real);
+  if(c==0){
+    execerror("IndexError: list index out of range", (char *) 0);
+    return;
+  }
+  (*c) = nd.val;
+  push(a);
+}
 Inst   *code(Inst f) /*   instalar una instrucción u operando   */
 {
 Inst *oprogp = progp;

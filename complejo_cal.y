@@ -16,6 +16,7 @@ extern void execute();
 extern void initcode();
 extern Inst *progp;
 extern FILE *yyin;
+extern Inst *pc;
 int readfile = 0;
 %}
 %union {
@@ -27,6 +28,7 @@ int readfile = 0;
 %token <sym> complexnum VAR VARS VARA BLTIN INDEF EXIT WHILE IF ELSE PRINT STRING
 %type <inst> stmt asgn exp stmtlist cond while if end string asgnS array arraylist initarray asgnA
 %right '='
+%left '[' ']'
 %left OR
 %left AND
 %left GT GE LT LE EQ NE
@@ -34,6 +36,8 @@ int readfile = 0;
 %left '*' '/'
 %left ','
 %left UNARYMINUS NOT
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 %%
 list:
   | list'\n'
@@ -51,6 +55,7 @@ array: initarray '['arraylist']' {code(STOP);}
   | VARA {code3(varpush,(Inst)$1,evalA);}
   | array'+'array {code(MergeArray);}
   | asgnA
+  | array '[' exp ':' exp ']' {code(STOP);}
   ;
 arraylist: arraylist','arraylist {}
   | exp {}
@@ -59,6 +64,7 @@ arraylist: arraylist','arraylist {}
 asgnA: VAR '=' array {code3(varpush,(Inst)$1,assignA);}
   |    VARS '=' array {code3(varpush,(Inst)$1,assignA);}
   |    VARA '=' array {code3(varpush,(Inst)$1,assignA);}
+  | array '[' exp ']' '=' exp {code(ChangeValue);}
   ;
 asgn: VAR '=' exp {code3(varpush,(Inst)$1,assign);}
   |   VARS '=' exp {code3(varpush,(Inst)$1,assign);}
@@ -73,6 +79,7 @@ string: STRING {code2(constStringpush,(Inst)$1);}
   | string '+' exp {code2(convertS,addS);}
   | exp '+' string {code2(flip,convertS);code2(flip,addS);}
   | VARS {code3(varpush,(Inst)$1,evalS);}
+  | asgnS
   ;
 stmt: exp {code((Inst)pop);}
     | string {code((Inst)pop);}
@@ -84,7 +91,7 @@ stmt: exp {code((Inst)pop);}
         ($1)[1] = (Inst)$3;
         ($1)[2] = (Inst)$4;
       }
-    | if cond stmt end {
+    | if cond stmt end  %prec LOWER_THAN_ELSE {
         ($1)[1] = (Inst)$3;
         ($1)[3] = (Inst)$4;
       }
@@ -126,6 +133,7 @@ exp:  complexnum  { code2(constpush,(Inst)$1);}
       | exp AND exp {code(and);}
       | exp OR exp {code(or);}
       | NOT exp {$$=$2;code(not);}
+      | array '[' exp ']' {code(aArray);}
       | EXIT {code(exit);}
   ;
 %%
@@ -138,7 +146,7 @@ void main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.5.3\n[GCC 8.2.1 20181127]\n>>> ");
+    printf("Jack Complex Calculator v1.5.4\n[GCC 8.2.1 20181127]\n>>> ");
     for(initcode(); yyparse (); initcode()){
       execute(prog);
       printf(">>> ");

@@ -38,8 +38,8 @@ typedef void (*Inst)();  /* instrucción de máquina */
 extern  Inst prog[];
 extern  void eval(), addc(), subc(), mulc(), divc(),negate(),whilecode(),ifcode();
 extern void gt(),ge(),lt(),le(),eq(),ne(),and(),or(),not();
-extern void  assign(), bltin(), varpush(), constpush(), print();
+extern void  assign(), bltin(), varpush(), constpush(), print(),ChangeValue();
 extern void convertS(),evalS(),addS(),printS(),assignS(),constStringpush(),flip();
-extern void makeArray(),printArray(),MergeArray(),assignA(),evalA();
+extern void makeArray(),printArray(),MergeArray(),assignA(),evalA(),aArray();
 
 #endif

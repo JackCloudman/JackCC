@@ -14,4 +14,5 @@ void printList(List*);
 List* Listappend(List*,ComplejoAP);
 List* Listinsert(List*,ComplejoAP);
 List* Listmerge(List*,List*);
+ComplejoAP* getElement(List*,int);
 #endif
