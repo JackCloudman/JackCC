@@ -140,13 +140,18 @@ exp:  complexnum  { code2(constpush,(Inst)$1);}
 
 #include <stdio.h>
 #include <ctype.h>
+#include <signal.h>
+#include <setjmp.h>
+jmp_buf begin;
 char *progname;
 
 void main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.5.4\n[GCC 8.2.1 20181127]\n>>> ");
+    printf("Jack Complex Calculator v1.5.4\n[GCC 8.2.1 20181127]\n");
+    setjmp(begin);
+    printf(">>> ");
     for(initcode(); yyparse (); initcode()){
       execute(prog);
       printf(">>> ");
@@ -155,6 +160,7 @@ void main (int argc, char *argv[]){
   if(argc==2){
     readfile = 1;
     yyin = fopen(argv[1],"r");
+    setjmp(begin);
     for(initcode();yyparse();initcode()){
       execute(prog);
     }
@@ -172,4 +178,5 @@ void warning(char *s, char *t){
 void execerror(char *s, char *t)
 {
 	warning(s, t);
+  longjmp(begin, 0);
 }
