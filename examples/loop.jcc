@@ -1,0 +1,8 @@
+z = 5
+while(z>0){
+  if(z==1){
+    print 1+1i
+  }
+  print z
+  z = z-1
+}

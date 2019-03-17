@@ -12,7 +12,7 @@ Symbol  *sp;
 }
 /*La funcion install crea la variable en la tabla
 de simbolos si esta que esta no existe*/
-Symbol *install(char *s,int t,ComplejoAP d)
+Symbol *installComplejo(char *s,int t,ComplejoAP d)
 {
   Symbol *sp;
   char *emalloc();
@@ -28,7 +28,24 @@ Symbol *install(char *s,int t,ComplejoAP d)
   symlist =  sp;
   return sp;
 }
-
+Symbol *installString(char*s,int t,char* d){
+  Symbol *sp;
+  char *emalloc();
+  sp = (Symbol*)emalloc(sizeof(Symbol));
+  sp->name = emalloc(strlen(s)+1);
+  strcpy(sp->name,s);
+  sp->u.s = d;
+  sp->type = t;
+  sp->next = symlist;
+  return sp;
+}
+char* makeString(char* cadena){
+  int len = strlen(cadena)-1;
+  char* c = (char*)malloc(sizeof(char)*len);
+  strncpy(c, cadena+1,len);
+  c[len-1] = '\0';
+  return c;
+}
 /*   revisar el regreso desde malloc  */
 char  *emalloc(unsigned n){
   char *p;

@@ -3,6 +3,7 @@
   #include<stdio.h>
   #include<stdlib.h>
   #include<math.h>
+  #include <string.h>
   struct complejo {
     double real, img;
   };
@@ -18,5 +19,6 @@
   ComplejoAP Complejo_sen(Complejo *);
   ComplejoAP Complejo_cos(Complejo *);
   ComplejoAP Complejo_abs(Complejo*);
-  void imprimirC(Complejo *c);
+  char * Complejo_to_String(ComplejoAP);
+  void imprimirC(Complejo *c,char*);
 #endif

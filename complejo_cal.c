@@ -34,12 +34,27 @@ ComplejoAP Complejo_log(ComplejoAP c){
 ComplejoAP Complejo_abs(ComplejoAP c){
   return creaComplejo(sqrt(c->real+c->img),0);
 }
+char* Complejo_to_String(ComplejoAP c){
+  char* s = (char*)malloc(sizeof(char)*100);
+  gcvt(c->real, 6, s);
+  if(c->img != 0){
+    char* img = (char*)malloc(sizeof(char)*50);
+    img = gcvt(c->img, 6, img);
+    if(c->img>0)
+      strcat(s,"+");
+    strcat(s,img);
+    strcat(s,"i");
+  }
+  return s;
 
-void imprimirC(ComplejoAP c){
+}
+void imprimirC(ComplejoAP c,char* end){
+  if(end == 0)
+    *end = '\n';
   if(c==0)
     return;
    if(c->img != 0)
-      printf("%f%+fi\n", c->real, c->img);
+      printf("%f%+fi%c", c->real, c->img,*end);
    else
-      printf("%f\n", c->real);
+      printf("%f%c", c->real,*end);
 }

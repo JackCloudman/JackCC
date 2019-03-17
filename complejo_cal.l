@@ -11,7 +11,7 @@ void RmWs(char* str);
 extern YYSTYPE yylval;
 %}
 
-op [-+*\/()=]
+op [-+*\/()=:]
 ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*
@@ -20,7 +20,7 @@ simplenum {ws}*{ws}*{number}
 completenum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
 complexnum simplenum|completenum
 VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
-
+STRING \"(\\.|[^"\\])*\"
 EXIT exit[\(][\)]
 %%
 > {return GT;}
@@ -36,22 +36,27 @@ if {return IF;}
 while {return WHILE;}
 else {return ELSE;}
 print {return PRINT;}
+{STRING} {
+    String s = makeString(yytext);
+    yylval.sym = installString("",STRING,s);
+    return STRING;
+  }
 {completenum} {
   double r, im;
   RmWs(yytext);
   sscanf(yytext,"%lf %lf",&r,&im);
-  yylval.sym = install("",complexnum,creaComplejo(r,im));
+  yylval.sym = installComplejo("",complexnum,creaComplejo(r,im));
   return complexnum;}
 {simplenum} {
   double r;
   RmWs(yytext);
   sscanf(yytext,"%lf",&r);
-  yylval.sym = install("",complexnum,creaComplejo(r,0));
+  yylval.sym = installComplejo("",complexnum,creaComplejo(r,0));
   return complexnum;}
 {VAR} {
   Symbol *s;
   if((s=lookup(yytext))==0)
-    s = install(yytext,INDEF,creaComplejo(0,0));
+    s = installComplejo(yytext,INDEF,creaComplejo(0,0));
   yylval.sym = s;
   return s->type==INDEF?VAR:s->type;
 }
@@ -59,8 +64,8 @@ print {return PRINT;}
 {op} |
 \n {return *yytext;}
 {ws} { /* Do nothing */ }
-[\{|\}] {return *yytext;}
-. { printf("%c",*yytext); }
+[\{|\}|\[|\]|,] {return *yytext;}
+. { printf("%c",*yytext);}
 {EXIT} {return EXIT;}
 %%
 

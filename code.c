@@ -37,6 +37,11 @@ void constpush( ){ /* meter una complexnum a la pila  */
   d.val  =  ((Symbol  *)*pc++)->u.val;
   push(d);
 }
+void constStringpush( ){ /* meter una complexnum a la pila  */
+  Datum d;
+  d.s  =  ((Symbol  *)*pc++)->u.s;
+  push(d);
+}
 
 void varpush(){/* meter una variable a la pila   */
   Datum d;
@@ -77,7 +82,26 @@ void eval( ){ /*  evaluar una variable en la pila   */
   }
   d.val   =  d.sym->u.val; push(d);
 }
-
+void evalS( ){ /*  evaluar una variable en la pila   */
+  Datum  d;
+  d   =  pop();
+  if   (d.sym->type   ==   INDEF){
+    execerror("Error, variable no definida: ",
+              d.sym->name);
+    error = 1;
+  }
+  d.s = d.sym->u.s; push(d);
+}
+void evalA( ){ /*  evaluar una variable en la pila   */
+  Datum  d;
+  d   =  pop();
+  if   (d.sym->type   ==   INDEF){
+    execerror("Error, variable no definida: ",
+              d.sym->name);
+    error = 1;
+  }
+  d.l = d.sym->u.l; push(d);
+}
 void addc( ){
   Datum d1,   d2;
   d2 = pop();
@@ -207,7 +231,7 @@ void assign( ){
   Datum d1, d2;
   d1 = pop();
   d2 = pop();
-  if (d1.sym->type != VAR && d1.sym->type != INDEF){
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
     execerror("assignment to non-variable", d1.sym->name);
     error = 1;
   }
@@ -216,12 +240,38 @@ void assign( ){
     d1.sym->type = VAR;
   push(d2);
 }
-
+void assignS( ){
+  Datum d1, d2;
+  d1 = pop();
+  d2 = pop();
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
+    execerror("assignment to non-variable", d1.sym->name);
+    error = 1;
+  }
+  d1.sym->u.s = d2.s;
+  if(!error)
+    d1.sym->type = VARS;
+  push(d2);
+}
+void assignA(){
+  Datum d1, d2;
+  d1 = pop();
+  d2 = pop();
+  if (d1.sym->type != VAR && d1.sym->type!=VARS && d1.sym->type!=VARA && d1.sym->type != INDEF){
+    execerror("assignment to non-variable", d1.sym->name);
+    error = 1;
+  }
+  d1.sym->u.l = d2.l;
+  if(!error)
+    d1.sym->type = VARA;
+  push(d2);
+}
 void print( ){
   Datum d;
+  char c = '\n';
   d = pop();
   if(!error)
-    imprimirC(d.val);
+    imprimirC(d.val,&c);
   error = 0;
 }
 
@@ -232,8 +282,93 @@ void bltin( )/*  evaluar un predefinido en el tope de la pila  */
   d.val  =   (*(ComplejoAP   (*)())(*pc++))(d.val);
   push(d);
 }
+void printS( ){
+  Datum d;
+  d = pop();
+  if(!error)
+    printf("'%s'\n",d.s);
+  error = 0;
+}
+void flip(){
+  Datum d1,d2;
+  d2 = pop();
+  d1 = pop();
+  push(d2);
+  push(d1);
+}
+void addS( ){
+  Datum d1, d2;
+  String d = 0;
+  d2 = pop();
+  d1 = pop();
 
-
+  d = (String)malloc(sizeof(char)*(strlen(d1.s)+strlen(d2.s)+1));
+  strcpy(d,d1.s);
+  strcat(d,d2.s);
+  d1.s = d;
+  push(d1);
+}
+void convertS(){
+  Datum d = pop();
+  d.s = Complejo_to_String(d.val);
+  push(d);
+}
+void makeArray(){
+  Datum d;
+  List* l = 0;
+  Datum* savestackp = stackp;
+  execute(pc);
+  while(stackp > savestackp){
+    d = pop();
+    l = Listinsert(l,d.val);
+  }
+  d.l = l;
+  push(d);
+  *pc++;
+}
+void MergeArray(){
+  Datum d2,d1;
+  d2 = pop();
+  d1 = pop();
+  d1.l = Listmerge(d1.l,d2.l);
+  push(d1);
+}
+void printArray(){
+  Datum d;
+  d = pop();
+  printList(d.l);
+}
+void aArray(){
+  Datum d1,d2;
+  ComplejoAP* c = 0;
+  d2 = pop();
+  if(d2.val->img!=0)
+    execerror("Only int number!", (char *) 0);
+  d1 = pop();
+  c = getElement(d1.l,d2.val->real);
+  if(c==0){
+    execerror("IndexError: list index out of range", (char *) 0);
+    return;
+  }
+  d1.val = *c;
+  push(d1);
+}
+void ChangeValue(){
+  Datum nd,index,a;//New dato,index, array
+  ComplejoAP* c = 0;
+  nd = pop();
+  index = pop();
+  a = pop(); //Save array
+  if(index.val->img!=0)
+    execerror("Only int number!", (char *) 0);
+  c = getElement(a.l,index.val->real);
+  if(c==0){
+    execerror("IndexError: list index out of range", (char *) 0);
+    return;
+  }
+  (*c) = nd.val;
+  push(a);
+}
 Inst   *code(Inst f) /*   instalar una instrucción u operando   */
 {
 Inst *oprogp = progp;
