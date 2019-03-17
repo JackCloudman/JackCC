@@ -160,7 +160,6 @@ void main (int argc, char *argv[]){
   if(argc==2){
     readfile = 1;
     yyin = fopen(argv[1],"r");
-    setjmp(begin);
     for(initcode();yyparse();initcode()){
       execute(prog);
     }
@@ -178,5 +177,7 @@ void warning(char *s, char *t){
 void execerror(char *s, char *t)
 {
 	warning(s, t);
+  if(readfile)
+    exit(1);
   longjmp(begin, 0);
 }
