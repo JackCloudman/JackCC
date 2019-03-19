@@ -15,4 +15,7 @@ List* Listappend(List*,ComplejoAP);
 List* Listinsert(List*,ComplejoAP);
 List* Listmerge(List*,List*);
 ComplejoAP* getElement(List*,int);
+List* getListrange(List*,int*,int*);
+int getListsize(List*);
+List* getListElement(List*,int);
 #endif

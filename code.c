@@ -37,6 +37,11 @@ void constpush( ){ /* meter una complexnum a la pila  */
   d.val  =  ((Symbol  *)*pc++)->u.val;
   push(d);
 }
+void emptypush(){
+  Datum d;
+  d.val = 0;
+  push(d);
+}
 void constStringpush( ){ /* meter una complexnum a la pila  */
   Datum d;
   d.s  =  ((Symbol  *)*pc++)->u.s;
@@ -325,6 +330,32 @@ void makeArray(){
   d.l = l;
   push(d);
   *pc++;
+}
+void getSubArray(){
+  Datum start,end,lista;
+  int *s = 0;
+  int *e = 0;
+  List *aux = 0;
+
+  end = pop();
+  start = pop();
+  lista = pop();
+
+  if(end.val !=0){
+    if(end.val->img!=0)
+      execerror("Only int number!", (char *) 0);
+    e = (int*)malloc(sizeof(int));
+    *e = end.val->real;
+  }
+  if(start.val!=0){
+    if(start.val->img!=0)
+      execerror("Only int number!", (char *) 0);
+    s = (int*)malloc(sizeof(int));
+    *s = start.val->real;
+  }
+  aux = getListrange(lista.l,s,e);
+  lista.l = aux;
+  push(lista);
 }
 void MergeArray(){
   Datum d2,d1;

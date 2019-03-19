@@ -55,7 +55,10 @@ array: initarray '['arraylist']' {code(STOP);}
   | VARA {code3(varpush,(Inst)$1,evalA);}
   | array'+'array {code(MergeArray);}
   | asgnA
-  | array '[' exp ':' exp ']' {code(STOP);}
+  | array '[' index ':' index ']' {code(getSubArray);}
+  ;
+index: exp {}
+  | {code(emptypush);}
   ;
 arraylist: arraylist','arraylist {}
   | exp {}
