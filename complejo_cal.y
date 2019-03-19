@@ -152,7 +152,7 @@ void main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.5.4\n[GCC 8.2.1 20181127]\n");
+    printf("Jack Complex Calculator v1.5.5\n[GCC 8.2.1 20181127]\n");
     setjmp(begin);
     printf(">>> ");
     for(initcode(); yyparse (); initcode()){
