@@ -65,6 +65,20 @@ void whilecode(){
   }
   pc = *((Inst  **)(savepc+1));
 }
+void forcode(){
+  Datum d;
+  Inst *savepc = pc;
+  execute(savepc+4); //Start
+  execute(*((Inst  **)(savepc+2))); //Condicion
+  d = pop();
+  while(d.val->img!=0 || d.val->real!=0){
+    execute(*((Inst  **)(savepc))); //stmt
+    execute(*((Inst  **)(savepc+3))); //incremento
+    execute(*((Inst  **)(savepc+2))); //Condicion
+    d = pop();
+  }
+  pc = *((Inst  **)(savepc+3)); //Salir del for
+}
 void ifcode(){
   Datum d;
   Inst  *savepc  = pc;	/* parte then */
@@ -287,11 +301,18 @@ void bltin( )/*  evaluar un predefinido en el tope de la pila  */
   d.val  =   (*(ComplejoAP   (*)())(*pc++))(d.val);
   push(d);
 }
-void printS( ){
+void printSE( ){
   Datum d;
   d = pop();
   if(!error)
     printf("'%s'\n",d.s);
+  error = 0;
+}
+void printS( ){
+  Datum d;
+  d = pop();
+  if(!error)
+    printf("%s\n",d.s);
   error = 0;
 }
 void flip(){
