@@ -11,7 +11,7 @@ void RmWs(char* str);
 extern YYSTYPE yylval;
 %}
 
-op [-+*\/()=:]
+op [-+*\/()=:;]
 ws [ \t]+
 digits [0-9]
 number (0|[1-9]+{digits}*)\.?{digits}*
@@ -36,6 +36,7 @@ if {return IF;}
 while {return WHILE;}
 else {return ELSE;}
 print {return PRINT;}
+for {return FOR;}
 {STRING} {
     String s = makeString(yytext);
     yylval.sym = installString("",STRING,s);

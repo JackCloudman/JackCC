@@ -30,3 +30,18 @@ x = y = [1,2,3] #Copy same reference
 x = [1,2,3] #To make different arrays merge second array with empty array
 y = x+[ ] # x and y are different arrays with same values
 ```
+### Loops
+Exist two type of loops  
+**for**
+```
+for(i=0;i<4;i=i+1){
+  print i
+}
+```
+**while**
+```
+while(i!=0){
+  print i
+  i=i-1;
+}
+```

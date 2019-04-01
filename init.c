@@ -1,6 +1,6 @@
 #include "Symbol.h"
 #include "y.tab.h"
-extern ComplejoAP Complejo_sen(),Complejo_cos(),Complejo_log(),Complejo_abs();
+extern ComplejoAP Complejo_sen(),Complejo_cos(),Complejo_log(),Complejo_abs(),Complejo_tan();
 static struct {         /* Constantes */ char *name; double cval;
 } consts[] = {
 "PI",    3.14159265358979323846,
@@ -18,6 +18,7 @@ ComplejoAP (*func)();
 "cos", Complejo_cos,
 "log", Complejo_log,
 "abs", Complejo_abs,
+"tan",Complejo_tan,
 0,	0
 };
  /* instalar constantes y predefinidos en la tabla */

@@ -13,6 +13,86 @@ List* Listinsert(List* l,ComplejoAP d){
   }
   return n;
 }
+int getListsize(List *l){
+  List* aux = 0;
+  int i=0;
+  if(l==0)
+    return 0;
+  aux = l;
+  while(aux->next!=l){
+    i++;
+    aux = aux->next;
+  }
+  return i+1;
+}
+List* getListrange(List *l,int* pos1,int* pos2){
+  List* start = 0;
+  List* end = 0;
+  List* aux =0;
+  if(l==0)
+    return 0;
+  if(pos1 == 0){
+    start = l;
+  }else{
+    start = getListElement(l,*pos1);
+    if(start == 0){
+      if(*pos1<0)
+        start = l;
+      else
+        return 0;
+    }
+  }
+  if(pos2 == 0){
+    end = l;
+  }else{
+    if(*pos2 == 0)
+      return 0;
+    end = getListElement(l,*pos2);
+    if(end == 0){
+      if(*pos2>0)
+        end = l;
+      else
+        return 0;
+    }
+  }
+  if(pos1 !=0 && pos2!=0 && *pos1==*pos2)
+    return 0;
+  while(start->next!=end){
+    aux = Listappend(aux,start->u.val);
+    start = start->next;
+  }
+  if(pos2!=0 && *pos2!=0)
+    aux = Listappend(aux,start->u.val);
+  else
+    if(pos2==0)
+      aux = Listappend(aux,start->u.val);
+  return aux;
+}
+List* getListElement(List *l,int pos){
+  List* aux = 0;
+  if(l==0)
+    return 0;
+  int i;
+  if(pos>=0){ // Recorrido a la derecha
+    aux = l;
+    for(i=0;(aux->next!=l)&&(i<pos);i++){
+      aux = aux->next;
+    }
+    if(pos>i)
+      return 0;
+  }
+  else{ //Recorrido a la izquierda
+    aux = l->prev;
+    for(i=-1;(aux->prev!=l)&&(i>pos);i--){
+      aux = aux->prev;
+    }
+    if(pos<i-1)
+      return 0;
+    else if(pos!=i)
+      return l;
+  }
+  return aux;
+}
 ComplejoAP* getElement(List *l,int pos){
   List* aux = 0;
   if(l==0)

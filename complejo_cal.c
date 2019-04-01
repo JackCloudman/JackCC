@@ -31,20 +31,23 @@ ComplejoAP Complejo_log(ComplejoAP c){
 
    return creaComplejo(0.5*log(((c->real)*(c->real))+((c->img)*(c->img))),atan((c->img)/(c->real)));
 }
+ComplejoAP Complejo_tan(ComplejoAP c){
+  return Complejo_div(Complejo_sen(c),Complejo_cos(c));
+}
 ComplejoAP Complejo_abs(ComplejoAP c){
   return creaComplejo(sqrt(c->real+c->img),0);
 }
 char* Complejo_to_String(ComplejoAP c){
-  char* s = (char*)malloc(sizeof(char)*100);
-  gcvt(c->real, 6, s);
+  char* s = (char*)malloc(sizeof(char)*30);
+  int j;
+  j = sprintf(s,"%f",c->real);
   if(c->img != 0){
-    char* img = (char*)malloc(sizeof(char)*50);
-    img = gcvt(c->img, 6, img);
     if(c->img>0)
-      strcat(s,"+");
-    strcat(s,img);
-    strcat(s,"i");
+      j += sprintf(s+j,"+%fi",c->img);
+    else
+      j += sprintf(s+j,"%fi",c->img);
   }
+  s[j]='\0';
   return s;
 
 }
