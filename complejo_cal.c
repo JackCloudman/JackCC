@@ -43,10 +43,11 @@ char* Complejo_to_String(ComplejoAP c){
   j = sprintf(s,"%f",c->real);
   if(c->img != 0){
     if(c->img>0)
-      sprintf(s+j,"+%fi\0",c->img);
+      j += sprintf(s+j,"+%fi",c->img);
     else
-      sprintf(s+j,"%fi\0",c->img);
+      j += sprintf(s+j,"%fi",c->img);
   }
+  s[j]='\0';
   return s;
 
 }

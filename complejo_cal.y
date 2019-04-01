@@ -162,7 +162,7 @@ exp:  complexnum  { $$=code2(constpush,(Inst)$1);}
 jmp_buf begin;
 char *progname;
 
-void main (int argc, char *argv[]){
+int main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
@@ -181,6 +181,7 @@ void main (int argc, char *argv[]){
       execute(prog);
     }
   }
+  return 0;
 }
 void yyerror (char *s) {
   warning(s, (char *) 0);
