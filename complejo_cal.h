@@ -18,6 +18,7 @@
   ComplejoAP Complejo_div(Complejo *, Complejo *);
   ComplejoAP Complejo_sen(Complejo *);
   ComplejoAP Complejo_cos(Complejo *);
+  ComplejoAP Complejo_tan(Complejo *);
   ComplejoAP Complejo_abs(Complejo*);
   char * Complejo_to_String(ComplejoAP);
   void imprimirC(Complejo *c,char*);

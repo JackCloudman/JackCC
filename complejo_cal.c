@@ -31,6 +31,9 @@ ComplejoAP Complejo_log(ComplejoAP c){
 
    return creaComplejo(0.5*log(((c->real)*(c->real))+((c->img)*(c->img))),atan((c->img)/(c->real)));
 }
+ComplejoAP Complejo_tan(ComplejoAP c){
+  return Complejo_div(Complejo_sen(c),Complejo_cos(c));
+}
 ComplejoAP Complejo_abs(ComplejoAP c){
   return creaComplejo(sqrt(c->real+c->img),0);
 }
