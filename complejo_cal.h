@@ -4,6 +4,7 @@
   #include<stdlib.h>
   #include<math.h>
   #include <string.h>
+  #include <ctype.h>
   struct complejo {
     double real, img;
   };
@@ -21,5 +22,8 @@
   ComplejoAP Complejo_tan(Complejo *);
   ComplejoAP Complejo_abs(Complejo*);
   char * Complejo_to_String(ComplejoAP);
+  ComplejoAP String_to_Complejo(char*);
+  ComplejoAP Complejo_real(ComplejoAP);
+  ComplejoAP Complejo_img(ComplejoAP);
   void imprimirC(Complejo *c,char*);
 #endif

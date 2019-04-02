@@ -1,6 +1,6 @@
 #include "Symbol.h"
 #include "y.tab.h"
-extern ComplejoAP Complejo_sen(),Complejo_cos(),Complejo_log(),Complejo_abs(),Complejo_tan();
+extern ComplejoAP Complejo_sen(),Complejo_cos(),Complejo_log(),Complejo_abs(),Complejo_tan(),Complejo_real(),Complejo_img();
 static struct {         /* Constantes */ char *name; double cval;
 } consts[] = {
 "PI",    3.14159265358979323846,
@@ -19,6 +19,8 @@ ComplejoAP (*func)();
 "log", Complejo_log,
 "abs", Complejo_abs,
 "tan",Complejo_tan,
+"real",Complejo_real,
+"img",Complejo_img,
 0,	0
 };
  /* instalar constantes y predefinidos en la tabla */
@@ -34,4 +36,5 @@ void init( ){
   	s = installComplejo(builtins[i].name, BLTIN, 0);
   	s->u.ptr = builtins[i].func;
   }
+  installComplejo("i",VAR,creaComplejo(0,1));
 }

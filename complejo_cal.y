@@ -5,7 +5,8 @@
 extern void *code(Inst);
 #define code2(c1,c2) code(c1); code(c2);
 #define code3(c1,c2,c3) code(c1); code(c2); code(c3);
-
+int indef;//Para saber si un return esta fuera de una funcion
+void defnonly( char *s );
 void yyerror (char *s);
 int yylex ();
 void warning(char *s, char *t);
@@ -17,16 +18,22 @@ extern void initcode();
 extern Inst *progp;
 extern FILE *yyin;
 extern Inst *pc;
+extern Inst   *progbase;
 int readfile = 0;
 %}
 %union {
-  Symbol *sym;
-  Inst *inst;
-  String s;
+  Symbol *sym; //Tabla de simbolos
+  Inst *inst; //Instruccion de maquina virtual
+  String s; //Parte string
+  int narg; //Numero de argumentos
 }
-
 %token <sym> complexnum VAR VARS VARA BLTIN INDEF EXIT WHILE IF ELSE PRINT STRING FOR
-%type <inst> stmt asgn exp stmtlist cond while if end string asgnS array arraylist initarray asgnA for inc start
+%token <sym> FUNCTION PROCEDURE RETURN FUNC PROC INPUT
+%token <narg> ARG
+%type <inst> stmt asgn exp stmtlist string asgnS array arraylist initarray asgnA
+%type <inst> cond while if end for inc start begin
+%type <sym> procname
+%type <narg> arglist
 %right '='
 %left '[' ']'
 %left OR
@@ -49,6 +56,7 @@ list:
   | list error '\n' {initcode();printf(">>> ");yyerrok;}
   | list array '\n' {code2(printArray,STOP);return 1;}
   | list asgnA '\n' {code2((Inst)pop,STOP);return 1;}
+  | list defn '\n'
   ;
 initarray: {code(makeArray);}
 array: initarray '['arraylist']' {$$=$1;code(STOP);}
@@ -72,6 +80,7 @@ asgnA: VAR '=' array {$$=$3;code3(varpush,(Inst)$1,assignA);}
 asgn: VAR '=' exp {$$=$3;code3(varpush,(Inst)$1,assign);}
   |   VARS '=' exp {$$=$3;code3(varpush,(Inst)$1,assign);}
   |   VARA '=' exp {$$=$3;code3(varpush,(Inst)$1,assign);}
+  |   ARG '=' exp { defnonly("$"); code2(argassign,(Inst)$1); $$=$3;}
   ;
 asgnS: VAR '=' string {$$=$3;code3(varpush,(Inst)$1,assignS);}
   |    VARS '=' string {$$=$3;code3(varpush,(Inst)$1,assignS);}
@@ -110,7 +119,23 @@ stmt: exp {code((Inst)pop);}
         ($1)[3] = (Inst)$7;
       }
     | '{' stmtlist '}' {$$=$2;}
+    | RETURN { defnonly("return"); code(procret); }
+    | RETURN exp {defnonly( "return" ); $$ = $2; code(funcret); }
+    | PROCEDURE begin '(' arglist ')'{ $$ = $2; code3(call, (Inst)$1, (Inst)$4);}
     ;
+defn:    FUNC procname { $2->type=FUNCTION; indef=1; }
+          '(' ')' stmt {code(procret); define($2); indef=0; }
+    | PROC procname { $2->type=PROCEDURE; indef=1; }
+          '(' ')' stmt { code(procret); define($2); indef=0; }
+       ;
+arglist:  /* nada */   { $$ = 0; }
+    | exp                 { $$ = 1; }
+    | arglist ',' exp     { $$ = $1 + 1; }
+;
+procname: VAR
+   | FUNCTION
+   | PROCEDURE
+   ;
 start: exp {code(STOP);$$=$1;}
   | {$$=code(STOP);}
 ;
@@ -125,15 +150,21 @@ for: FOR {$$ = code3(forcode,STOP,STOP);code2(STOP,STOP);}
   ;
 if: IF {$$=code(ifcode);code3(STOP,STOP,STOP);}
   ;
-end:  {code(STOP);$$=progp;}
+begin:  /* nada */          { $$ = progp; }
   ;
-stmtlist: {$$=progp;}
+end:  {code(STOP);$$ = progp;}
+  ;
+stmtlist: {$$ = progp;}
       | stmtlist '\n' {if(!readfile)printf("... ");}
       | stmtlist stmt
   ;
 exp:  complexnum  { $$=code2(constpush,(Inst)$1);}
       | VAR       {$$=code3(varpush,(Inst)$1,eval);}
+      | ARG    {   defnonly("$"); $$ = code2(arg, (Inst)$1); }
       | asgn
+      | FUNCTION begin '(' arglist ')'
+              { $$ = $2; code3(call,(Inst)$1,(Inst)$4); }
+      | INPUT'('string')' { code(printInput);$$ =code(varread); }
       | exp '+' exp     { code(addc);  }
       | exp '-' exp     { code(subc);}
       | exp '*' exp     { code(mulc);}
@@ -166,11 +197,11 @@ int main (int argc, char *argv[]){
   progname=argv[0];
   init();
   if(argc==1){
-    printf("Jack Complex Calculator v1.6 \n[GCC 8.2.1 20181127]\n");
+    printf("Jack Complex Calculator v1.7 \n[GCC 8.2.1 20181127]\n");
     setjmp(begin);
     printf(">>> ");
     for(initcode(); yyparse (); initcode()){
-      execute(prog);
+      execute(progbase);
       printf(">>> ");
     }
   }
@@ -178,7 +209,7 @@ int main (int argc, char *argv[]){
     readfile = 1;
     yyin = fopen(argv[1],"r");
     for(initcode();yyparse();initcode()){
-      execute(prog);
+      execute(progbase);
     }
   }
   return 0;
@@ -198,4 +229,9 @@ void execerror(char *s, char *t)
   if(readfile)
     exit(1);
   longjmp(begin, 0);
+}
+void defnonly( char *s )     /* advertena la si hay definición i legal */
+{
+if (!indef)
+	execerror(s, "used outside definition");
 }

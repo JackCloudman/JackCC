@@ -20,6 +20,7 @@ simplenum {ws}*{ws}*{number}
 completenum {ws}*[-]*{ws}*{number}{ws}*[+|-]{ws}*{number}{ws}*{im}{ws}*
 complexnum simplenum|completenum
 VAR [_]*[a-zA-Z][a-zA-Z0-9_]*
+ARG \${number}
 STRING \"(\\.|[^"\\])*\"
 EXIT exit[\(][\)]
 %%
@@ -37,6 +38,11 @@ while {return WHILE;}
 else {return ELSE;}
 print {return PRINT;}
 for {return FOR;}
+def {return FUNC;}
+input {return INPUT;}
+proc {return PROC;}
+return {return RETURN;}
+{ARG} {int n=0;sscanf(yytext,"$%d",&n);yylval.narg =n;return ARG;}
 {STRING} {
     String s = makeString(yytext);
     yylval.sym = installString("",STRING,s);

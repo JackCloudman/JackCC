@@ -10,23 +10,37 @@ static  Datum   *stackp;       /* siguiente lugar libre en la pila */
 Inst    prog[NPROG];    /* la máquina */
 Inst    *progp;         /* siguiente lugar libre para la generación de código */
 Inst    *pc;	/* contador de programa durante la ejecución */
+Inst   *progbase = prog; /* Inicie del subprograma actual */
+int    returning;      /* 1 si se ve la proposiolón de retorno */
+
 int error = 0;
 
+typedef struct Frame {     /* nivel da pila par» Huida a proc/func */
+Symbol  *sp;         /* entrada en la tabla da simbolos */
+Inst    *retpc;   /* dónde reanudar después del retorno */
+Datum  *argn;     /* n-esimo argumento en la pila */
+int    nargs;     /* número da argumentos */
+} Frame;
+
+#define NFRAME  1000
+Frame  frame[NFRAME] ;
+Frame   *fp;  /* apuntador a nivel */
+
 void initcode(){ /* inicialización para la generación de código */
-stackp = stack;
-progp = prog;
+  progp = progbase;
+  stackp = stack;
+  fp = frame;
+  returning = 0;
 }
 
-void push(d)	/*  meter d en la pila  */
-Datum d;
-{
-if (stackp >= &stack[NSTACK])
-execerror("stack overflow", (char *) 0);
-*stackp++ = d;
+void push(Datum d){
+   if (stackp >= &stack[NSTACK])
+      execerror("stack too deep", (char *)0);
+   *stackp++ = d;
 }
 
 Datum pop( ){ /* sacar y retornar de la pila el elemento del tope */
-  if (stackp <= stack)
+  if (stackp == stack)
     execerror("stack underflow", (char *) 0);
   return  *--stackp;
 }
@@ -60,9 +74,11 @@ void whilecode(){
   d = pop();
   while(d.val->img!=0 || d.val->real!=0){
     execute(*((Inst  **)(savepc)));
+    if (returning) break;
     execute(savepc+2);
     d = pop();
   }
+  if (!returning)
   pc = *((Inst  **)(savepc+1));
 }
 void forcode(){
@@ -77,6 +93,7 @@ void forcode(){
     execute(*((Inst  **)(savepc+2))); //Condicion
     d = pop();
   }
+  if (!returning)
   pc = *((Inst  **)(savepc+3)); //Salir del for
 }
 void ifcode(){
@@ -88,9 +105,59 @@ void ifcode(){
     execute(*((Inst   **)(savepc)));
   else if(*((Inst  **)(savepc+1)))   /*  ¿parte else?   */
     execute(*(( Inst  **) (savepc+1)));
+  if (!returning)
   pc  =  *((Inst  **)(savepc+2));	/*  siguiente proposición   */
 }
+void define(Symbol *sp){
+  sp->u.defn = (Inst)progbase;
+  progbase = progp;      /* el siguiente código comienza aquí */
+}
 
+void call() {
+  Symbol  *sp  =   (Symbol *)pc[0];   /*   entrada en tabla da simbolos  */
+                                    /*   para la función   */
+  if   (fp++   >=  &frame[NFRAME-1])
+    execerror(sp->name,   "call  nested too deeply");
+  fp->sp = sp;
+  fp->nargs =   (int)pc[1];
+  fp->retpc = pc  + 2;
+  fp->argn  =  stackp  -   1;     /*   último argumento   */
+  execute((Inst*)sp->u.defn);
+  returning = 0;
+}
+void ret( ) {
+  int i;
+  for (i = 0; i < fp->nargs; i++)
+    pop();  /* sacar argunentos de la pila */
+  pc = (Inst *)fp->retpc;
+  --fp;
+  returning = 1;
+}
+
+void funcret(){
+  Datum d;
+  if (fp->sp->type == PROCEDURE)
+  execerror(fp->sp->name, "(proc) returns value");
+  d = pop();      /* conservar el valor de retorno de la func */
+  ret();
+  push(d);
+}
+void procret( ){
+  if(fp->sp->type  ==  FUNCTION)
+    execerror(fp->sp->name,"(func) returns no value");
+  ret();
+}
+ComplejoAP* getarg( ) {
+  int nargs = (int) *pc++;
+  if (nargs > fp->nargs)
+  	execerror(fp-> sp->name, "not enough arguments");
+  return &(fp->argn[nargs - fp->nargs].val);
+}
+void arg( ) {
+  Datum d;
+  d.val = *getarg();
+  push(d);
+}
 void eval( ){ /*  evaluar una variable en la pila   */
   Datum  d;
   d   =  pop();
@@ -285,6 +352,12 @@ void assignA(){
     d1.sym->type = VARA;
   push(d2);
 }
+void argassign() {
+  Datum d;
+  d =pop();
+  push(d);       /* dejar valor en la pila */
+  *getarg() = d.val;
+}
 void print( ){
   Datum d;
   char c = '\n';
@@ -293,7 +366,38 @@ void print( ){
     imprimirC(d.val,&c);
   error = 0;
 }
-
+char* leercadena(){
+  char *cadena=(char*)calloc(1,sizeof(char));
+  int i=0;
+  char c;
+  setbuf(stdin,NULL);
+  while(1){
+    c=getchar();
+    if(c==' '||c==9)
+      continue;
+    if(c!='\n'){
+      cadena[i]=c;
+      i++;
+      cadena=(char*)realloc(cadena,sizeof(char)*(i+1));
+    }
+    else{
+	  cadena[i]='\0';
+      break;
+    }
+  }
+  return cadena;
+}
+void varread(){
+  Datum d;
+  ComplejoAP c = 0;
+  char* cad = leercadena();
+  c = String_to_Complejo(cad);
+  if(c==0)
+    execerror("No es un numero!",(char*)0);
+  d.val = c;
+  push(d);
+ /*NADA POR AHORA*/
+}
 void bltin( )/*  evaluar un predefinido en el tope de la pila  */
 {
   Datum d;
@@ -306,6 +410,13 @@ void printSE( ){
   d = pop();
   if(!error)
     printf("'%s'\n",d.s);
+  error = 0;
+}
+void printInput(){
+  Datum d;
+  d = pop();
+  if(!error)
+    printf("%s",d.s);
   error = 0;
 }
 void printS( ){
@@ -432,6 +543,6 @@ Inst *oprogp = progp;
 
 void execute(Inst* p)	/*   ejecución con la máquina   */
 {
-for (pc  =  p;   *pc != STOP; )
+for (pc  =  p;*pc != STOP && !returning; )
 	(*(*pc++))();
 }
