@@ -56,7 +56,7 @@ list:
   | list error '\n' {initcode();printf(">>> ");yyerrok;}
   | list array '\n' {code2(printArray,STOP);return 1;}
   | list asgnA '\n' {code2((Inst)pop,STOP);return 1;}
-  | list defn '\n'
+  | list defn '\n' {if(!readfile)printf(">>> ");}
   ;
 initarray: {code(makeArray);}
 array: initarray '['arraylist']' {$$=$1;code(STOP);}
