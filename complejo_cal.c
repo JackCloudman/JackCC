@@ -37,6 +37,12 @@ ComplejoAP Complejo_tan(ComplejoAP c){
 ComplejoAP Complejo_abs(ComplejoAP c){
   return creaComplejo(sqrt(c->real+c->img),0);
 }
+ComplejoAP Complejo_real(ComplejoAP c){
+  return creaComplejo(c->real,0);
+}
+ComplejoAP Complejo_img(ComplejoAP c){
+  return creaComplejo(0,c->img);
+}
 char* Complejo_to_String(ComplejoAP c){
   char* s = (char*)malloc(sizeof(char)*30);
   int j;
@@ -50,6 +56,33 @@ char* Complejo_to_String(ComplejoAP c){
   s[j]='\0';
   return s;
 
+}
+ComplejoAP String_to_Complejo(char* buffer/*Sin espacios :P*/){
+  double real=0,img=0;
+  char op1=0,op2;
+  int j;
+  if(buffer[0]=='.'||isdigit(buffer[0])||buffer[0]=='-'){
+    if(buffer[0]=='-'){
+      j = sscanf(buffer,"%c%lf%c%lfi",&op1,&real,&op2,&img);
+    }
+    else j = sscanf(buffer,"%lf%c%lfi",&real,&op2,&img);
+    if(j==1||j==2){
+      if(op1!='-'&&op1!=0)return 0;
+      if(op1=='-')
+        real=-real;
+      return creaComplejo(real,0);
+    }
+    if(j==4||j==3){
+      if(buffer[strlen(buffer)-1]!='i') return 0;
+      if((op1!='-'&&op1!=0)||(op2!='-'&&op2!='+')) return 0;
+      if(op1=='-')
+        real=-real;
+      if(op2=='-')
+        img = -img;
+      return creaComplejo(real,img);
+    }
+  }
+  return 0;
 }
 void imprimirC(ComplejoAP c,char* end){
   if(end == 0)

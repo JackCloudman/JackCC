@@ -45,3 +45,46 @@ while(i!=0){
   i=i-1;
 }
 ```
+### Functions
+Define function:
+```
+def myfunc(){
+  return $1+$2
+}
+```
+Call function:
+```
+result = myfunc(5,4)
+```
+## Procedures
+Define procedures:
+```
+proc myproc(){
+  print "hello world!"
+  x = x+1
+}
+```
+Call procedures:
+```
+myproc();
+```
+### Constants
+```
+PI = 3.14159265358979323846
+E = 2.71828182845904523536
+GAMMA = 0.57721566490153286060
+DEG" = 57.29577951308232087680
+PHI = 1.6180339887498948*820
+i = 0+1i
+```
+### Math functions
+```
+sen(complexnum)
+cos(complexnum)
+log(complexnum)
+abs(complexnum)
+tan(complexnum)
+real(complexnum)
+img(complexnum)
+```
+More functions in examples/math.jcc

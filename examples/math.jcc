@@ -1,0 +1,6 @@
+def arctan(){
+  return (0.5*i)*(log(1-i*$1)-log(1+i*$1))
+}
+def arg(){
+  return arctan(-(i*img($1))/real($1))
+}
