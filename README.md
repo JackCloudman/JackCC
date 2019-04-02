@@ -68,6 +68,10 @@ Call procedures:
 ```
 myproc();
 ```
+### Input complex values
+```python
+var = input("Message")
+```
 ### Constants
 ```
 PI = 3.14159265358979323846
