@@ -94,7 +94,7 @@ void forcode(){
     d = pop();
   }
   if (!returning)
-  pc = *((Inst  **)(savepc+3)); //Salir del for
+  pc = *((Inst  **)(savepc+1)); //Salir del for
 }
 void ifcode(){
   Datum d;
